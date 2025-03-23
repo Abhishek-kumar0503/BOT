@@ -17,7 +17,11 @@ git clone https://github.com/Abhishek-kumar0503/BOT.git
 
 ### Install Requirement file
 
-```pip install reuirement.txt```
+```
+pip install reuirement.txt
+```
 
 ### Run the Server
-```Python manage.py runserver```
+```
+Python manage.py runserver
+```
