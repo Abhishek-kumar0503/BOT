@@ -12,19 +12,29 @@ from urllib.parse import quote, unquote
 from .forms import CallRequestForm, SignupForm, LoginForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Twilio credentials
-account_sid = settings.TWILIO_ACCOUNT_SID
-auth_token = settings.TWILIO_AUTH_TOKEN
-twilio_phone_number = settings.TWILIO_PHONE_NUMBER
+account_sid = os.getenv("TWILIO_ACCOUNT_SID")
+auth_token = os.getenv("TWILIO_AUTH_TOKEN")
+twilio_phone_number = os.getenv("TWILIO_PHONE_NUMBER")
 
 # ElevenLabs API details
-API_KEY = settings.ELEVENLABS_API_KEY
-VOICE_ID = settings.ELEVENLABS_VOICE_ID
+API_KEY = os.getenv("ELEVENLABS_API_KEY")
+VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID")
 TTS_URL = f"https://api.elevenlabs.io/v1/text-to-speech/{VOICE_ID}"
 
 # Ngrok URL
-NGROK_URL = settings.NGROK_URL
+NGROK_URL = os.getenv("NGROK_URL")
+
+# print(f"TWILIO_ACCOUNT_SID: {account_sid}")
+# print(f"TWILIO_AUTH_TOKEN: {auth_token}")
+# print(f"TWILIO_PHONE_NUMBER: {twilio_phone_number}")
+# print(f"11labs: {API_KEY}")
+# print(f"Voice IDs: {VOICE_ID}")
 
 def text_to_speech(text):
     """Converts text to speech using ElevenLabs API and returns MP3 content."""
@@ -103,6 +113,7 @@ def handle_recording(request):
             with open(file_path, "wb") as f:
                 f.write(response.content)
             public_download_url = request.build_absolute_uri(f"{NGROK_URL}/media/{file_path}")
+            print(public_download_url)
             return JsonResponse({"success": True, "download_url": public_download_url})
         time.sleep(5)
 

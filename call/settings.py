@@ -117,7 +117,7 @@ ALLOWED_HOSTS = ['*']
 ALLOWED_HOSTS = [
     '127.0.0.1',  # Allow localhost
     'localhost',  # Allow localhost
-    'f67a-103-69-14-55.ngrok-free.app',  # Add your Ngrok domain
+    '7d6a-103-69-14-55.ngrok-free.app',  # Add your Ngrok domain
 ]
 
 print(f"ALLOWED_HOSTS: {ALLOWED_HOSTS}") 
