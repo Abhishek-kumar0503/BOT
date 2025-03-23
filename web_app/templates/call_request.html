@@ -1,0 +1,736 @@
+{% comment %} <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Call Request Form</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <div class="form-container">
+        <h1>Call Request Form</h1>
+        <form method="post" id="callRequestForm">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="phone_number">Phone Number:</label>
+                <input type="text" id="phone_number" name="phone_number" required>
+                <div id="phoneError" class="error-message"></div>
+            </div>
+            <div class="form-group">
+                <label for="message">Your Message:</label>
+                <textarea id="message" name="message" required></textarea>
+                <div id="messageError" class="error-message"></div>
+            </div>
+            <div class="form-group">
+                <button type="submit">Submit</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html> {% endcomment %}
+
+
+
+{% comment %} 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalkTime - AI Automated Calling</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        function scrollToCallSection() {
+            document.getElementById("callNowSection").scrollIntoView({ behavior: "smooth" });
+        }
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+    <!-- Navbar -->
+    <header class="flex justify-between items-center p-6 bg-white shadow-md">
+        <h1 class="text-xl font-bold text-purple-600"><span class="mr-1">📞</span> TalkTime</h1>
+        <nav>
+            <ul class="flex space-x-6">
+                <li><a href="#features" class="hover:text-purple-600">Features</a></li>
+                <li><a href="#use-case" class="hover:text-purple-600">Use Cases</a></li>
+                <li><a href="#contact" class="hover:text-purple-600">Contact</a></li>
+            </ul>
+        </nav>
+        <a href="#" class="bg-purple-600 text-white px-5 py-2 rounded-full hover:bg-purple-700 transition">Get Started</a>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="flex flex-col md:flex-row items-center px-10 py-20">
+        <div class="md:w-1/2 text-center md:text-left">
+            <h2 class="text-4xl font-bold leading-tight">
+                Automate <span class="text-purple-600">Your Calls</span> with AI
+            </h2>
+            <p class="mt-4 text-gray-600">
+                TalkTime is an AI-powered system that makes automated calls for you. Just enter a message, and AI will call multiple numbers, deliver your message, and record responses. Perfect for event RSVPs, surveys, feedback, and customer engagement.
+            </p>
+            <div class="mt-6 flex justify-center md:justify-start space-x-4">
+                <a href="#callNowSection" onclick="scrollToCallSection()" 
+                   class="bg-purple-600 text-white px-6 py-3 rounded-full hover:bg-purple-700 transition">Start Calling Now</a>
+                <a href="#" class="border border-purple-600 text-purple-600 px-6 py-3 rounded-full hover:bg-purple-100 transition">Learn More</a>
+            </div>
+        </div>
+        <div class="md:w-1/2 flex justify-center mt-10 md:mt-0 relative">
+            <div class="bg-gradient-to-r from-purple-100 to-pink-100 p-6 rounded-2xl shadow-lg relative">
+                {% load static %}
+                <img src="{% static 'image1.png' %}" alt="AI Calling" class="rounded-xl w-40 md:w-60">
+                <div class="absolute top-2 left-2 bg-white p-2 rounded-full shadow-lg">
+                    <span>📢</span>
+                </div>
+                <div class="absolute bottom-2 right-2 bg-white p-2 rounded-full shadow-lg">
+                    <span>📞</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call Now Section -->
+    <section id="callNowSection" class="px-10 py-16 bg-purple-100 flex flex-col md:flex-row items-center">
+        <div class="md:w-1/2 flex justify-center">
+            <img src="{% static 'image2.jpg' %}" alt="Automated Call" class="w-64 md:w-80 rounded-lg shadow-lg">
+        </div>  
+
+        <div class="md:w-1/2 text-center md:text-left mt-6 md:mt-0">
+            <h2 class="text-3xl font-bold text-purple-700">Automate Your Calls</h2>
+            <p class="mt-2 text-gray-600">Let AI make calls and collect responses for you.</p>
+            <div class="mt-10 bg-white p-6 rounded-xl shadow-md">
+                <form method="post" id="callRequestForm">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label for="phone_number" class="block text-gray-700 font-semibold mb-1">Phone Number:</label>
+                        <input type="text" id="phone_number" name="phone_number" required
+                            class="w-full border border-purple-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="Enter phone number : +916376550616">
+                        <div id="phoneError" class="text-red-500 text-sm mt-1"></div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="message" class="block text-gray-700 font-semibold mb-1">Your Message:</label>
+                        <textarea id="message" name="message" required
+                                class="w-full border border-purple-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="Enter your message : Please leave some message "></textarea>
+                        <div id="messageError" class="text-red-500 text-sm mt-1"></div>
+                    </div>
+                    <button type="submit" class="mt-4 w-full bg-purple-600 text-white px-5 py-3 rounded-full hover:bg-purple-700 transition">
+                        Call Now
+                    </button>
+                </form>
+            </div> 
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="px-10 py-16 bg-white">
+        <h2 class="text-3xl font-bold text-center text-purple-700">Why Choose TalkTime?</h2>
+        <div class="grid md:grid-cols-3 gap-6 mt-10">
+            <div class="p-6 bg-purple-50 rounded-xl shadow">
+                <h3 class="text-lg font-semibold flex items-center space-x-2">
+                    <span class="text-purple-600">🔄</span> <span>Automated Calls</span>
+                </h3>
+                <p class="text-gray-600 mt-2">AI delivers messages to multiple contacts.</p>
+            </div>
+            <div class="p-6 bg-purple-50 rounded-xl shadow">
+                <h3 class="text-lg font-semibold flex items-center space-x-2">
+                    <span class="text-purple-600">📊</span> <span>Response Tracking</span>
+                </h3>
+                <p class="text-gray-600 mt-2">Records and organizes responses automatically.</p>
+            </div>
+            <div class="p-6 bg-purple-50 rounded-xl shadow">
+                <h3 class="text-lg font-semibold flex items-center space-x-2">
+                    <span class="text-purple-600">💡</span> <span>Custom Messages</span>
+                </h3>
+                <p class="text-gray-600 mt-2">Personalized messages for RSVPs, surveys, and more.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Case Section -->
+    <section id="use-case" class="px-10 py-16 bg-gray-100 text-center">
+        <h2 class="text-3xl font-bold text-purple-700">Who Can Use TalkTime?</h2>
+        <p class="mt-4 text-gray-600">Perfect for businesses, event planners, customer surveys, and automated follow-ups.</p>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-purple-700 text-white text-center py-6">
+        <p>&copy; 2025 TalkTime. All rights reserved.</p>
+    </footer>
+
+</body>
+</html> {% endcomment %}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalkTime - AI Calling Automation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Navigation Bar -->
+    <nav class="fixed top-0 left-0 w-full bg-white shadow-md z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <!-- Logo -->
+            <a href="#" class="text-2xl font-bold text-purple-600">DialAI</a>
+
+            <!-- Navigation Links (Hidden on Mobile) -->
+            <ul class="hidden md:flex space-x-6">
+                <li><a href="#features" class="text-gray-700 hover:text-blue-600 transition">Features</a></li>
+                <li><a href="#how-it-works" class="text-gray-700 hover:text-blue-600 transition">How It Works</a></li>
+                <li><a href="#pricing" class="text-gray-700 hover:text-blue-600 transition">Pricing</a></li>
+                <li><a href="#testimonials" class="text-gray-700 hover:text-blue-600 transition">Testimonials</a></li>
+                <li><a href="#faq" class="text-gray-700 hover:text-blue-600 transition">FAQ</a></li>
+                <li><a href="#contact" class="text-gray-700 hover:text-blue-600 transition">Contact</a></li>
+            </ul>
+
+            <!-- Authentication Links -->
+            <div class="hidden md:flex space-x-4">
+                {% if user.is_authenticated %}
+                    <!-- Show User's Name & Logout Button -->
+                    <span class="text-gray-800 font-semibold">Welcome, {{ user.username }}</span>
+                    <a href="{% url 'logout' %}" class="text-red-600 border border-red-600 px-4 py-2 rounded hover:bg-red-600 hover:text-white transition">Logout</a>
+                {% else %}
+                    <!-- Show Login & Signup Buttons -->
+                    <a href="{% url 'login' %}" class="text-purple-600 border border-purple-600 px-4 py-2 rounded hover:bg-purple-600 hover:text-white transition">Login</a>
+                    <a href="{% url 'signup' %}" class="bg-purple-600 text-white px-5 py-2 rounded-lg shadow-md hover:bg-purple-700 transition">Try It Free</a>
+                {% endif %}
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button id="menu-btn" class="md:hidden text-gray-700 focus:outline-none">
+                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Mobile Menu (Initially Hidden) -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white shadow-md">
+            <ul class="flex flex-col space-y-4 px-6 py-4">
+                <li><a href="#features" class="text-gray-700 hover:text-blue-600 transition">Features</a></li>
+                <li><a href="#how-it-works" class="text-gray-700 hover:text-blue-600 transition">How It Works</a></li>
+                <li><a href="#pricing" class="text-gray-700 hover:text-blue-600 transition">Pricing</a></li>
+                <li><a href="#testimonials" class="text-gray-700 hover:text-blue-600 transition">Testimonials</a></li>
+                <li><a href="#faq" class="text-gray-700 hover:text-blue-600 transition">FAQ</a></li>
+                <li><a href="#contact" class="text-gray-700 hover:text-blue-600 transition">Contact</a></li>
+
+                {% if user.is_authenticated %}
+                    <!-- Show User's Name & Logout Button -->
+                    <li class="text-center text-gray-800 font-semibold">Welcome, {{ user.username }}</li>
+                    <li><a href="{% url 'logout' %}" class="text-red-600 border border-red-600 px-4 py-2 rounded hover:bg-red-600 hover:text-white transition block text-center">Logout</a></li>
+                {% else %}
+                    <!-- Show Login & Signup Buttons -->
+                    <li><a href="{% url 'login' %}" class="text-blue-600 border border-blue-600 px-4 py-2 rounded hover:bg-blue-600 hover:text-white transition block text-center">Login</a></li>
+                    <li><a href="{% url 'signup' %}" class="bg-blue-600 text-white px-5 py-2 rounded-lg shadow-md hover:bg-blue-700 transition block text-center">Try It Free</a></li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <!-- JavaScript for Mobile Menu Toggle -->
+        <script>
+            const menuBtn = document.getElementById('menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            menuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        </script>
+    </nav>
+
+    
+
+    <!-- Hero Section -->
+    <section class="py-24 bg-gradient-to-b from-gray-50 to-white mt-16">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between">
+            
+            <!-- Text Content -->
+            <div class="md:w-1/2 text-left animate-fade-in">
+                <h1 class="text-5xl font-bold text-gray-900 mb-6 leading-tight">
+                    Automate Your Calls with AI – Effortless, Efficient, and Smart
+                </h1>
+                <p class="text-xl text-gray-600 mb-8 leading-relaxed">
+                    Say goodbye to manual calling. Let AI handle your outreach, record responses, and streamline your workflow. Whether it's collecting RSVPs, conducting surveys, or sending reminders, Dial AI makes it simple and seamless.
+                </p>
+                <div class="mt-6 flex space-x-4">
+                    <a href="#callNow" class="bg-purple-600 text-white px-8 py-4 rounded-full hover:bg-purple-700 transition duration-300 shadow-lg hover:shadow-xl">
+                        Start Calling Now – Free Trial
+                    </a>
+                    <a href="#" class="border border-purple-600 text-purple-600 px-8 py-4 rounded-full hover:bg-purple-100 transition duration-300">
+                        Watch Demo
+                    </a>
+                </div>
+            </div>
+    
+            <!-- Image Section -->
+            <div class="md:w-1/2 flex justify-end mt-12 md:mt-0">
+                <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=600&q=80" 
+                    alt="AI Calling Dashboard" 
+                    class="rounded-lg shadow-2xl hover:scale-105 transition-transform duration-300 animate-slide-in w-full max-w-md md:max-w-lg">
+            </div>
+    
+        </div>
+    </section>
+    
+
+    <!-- Animations (Framer Motion) -->
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fade-in { animation: fadeIn 1s ease-out; }
+        .animate-slide-in { animation: slideIn 1s ease-out; }
+    </style>
+
+
+    <!-- Features Section -->
+<section class="py-24 bg-gray-100 text-center">
+    <div class="max-w-7xl mx-auto px-6">
+        <h2 class="text-4xl font-bold text-gray-900 mb-12 animate-fade-in">What You Can Do with DialAI</h2>
+        
+        <!-- Features Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            <!-- Feature Card 1: Automated Calling -->
+            <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 animate-fade-in">
+                <img src="https://img.icons8.com/ios-filled/50/000000/phone.png" class="mx-auto mb-4" alt="Automated Calling" />
+                <h3 class="text-2xl font-semibold">Automated Calling</h3>
+                <p class="text-gray-600 mt-2">Let AI call contacts and record responses effortlessly.</p>
+            </div>
+
+            <!-- Feature Card 2: Customizable Scripts -->
+            <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 animate-fade-in">
+                <img src="https://img.icons8.com/ios-filled/50/000000/chat-message.png" class="mx-auto mb-4" alt="Customizable Scripts" />
+                <h3 class="text-2xl font-semibold">Customizable Scripts</h3>
+                <p class="text-gray-600 mt-2">Create personalized voice scripts for better engagement.</p>
+            </div>
+
+            <!-- Feature Card 3: Real-Time Tracking -->
+            <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 animate-fade-in">
+                {% load static %}   
+                <img src="{% static 'real-time.png' %}" class="mx-auto mb-4 w-30 h-12" />
+                <h3 class="text-2xl font-semibold">Real-Time Tracking</h3>
+                <p class="text-gray-600 mt-2">Monitor responses and get insights instantly.</p>
+            </div>
+
+            <!-- Feature Card 4: Follow-Up Automation -->
+            <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 animate-fade-in relative">
+                <div class="absolute top-2 right-2 bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm">
+                    Coming Soon
+                </div>
+                <img src="https://img.icons8.com/ios-filled/50/000000/automatic.png" class="mx-auto mb-4" alt="Follow-Up Automation" />
+                <h3 class="text-2xl font-semibold">Follow-Up Automation</h3>
+                <p class="text-gray-600 mt-2">Automatically send follow-ups based on responses.</p>
+            </div>
+
+            <!-- Feature Card 5: Multi-Language Support -->
+            <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 animate-fade-in relative">
+                <div class="absolute top-2 right-2 bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm">
+                    Coming Soon
+                </div>
+                <img src="https://img.icons8.com/ios-filled/50/000000/language.png" class="mx-auto mb-4" alt="Multi-Language Support" />
+                <h3 class="text-2xl font-semibold">Multi-Language Support</h3>
+                <p class="text-gray-600 mt-2">Reach a global audience with support for multiple languages.</p>
+            </div>
+
+            <!-- Feature Card 6: Integration with CRMs -->
+            <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 animate-fade-in relative">
+                <div class="absolute top-2 right-2 bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm">
+                    Coming Soon
+                </div>
+                <img src="https://img.icons8.com/ios-filled/50/000000/connected.png" class="mx-auto mb-4" alt="Integration with CRMs" />
+                <h3 class="text-2xl font-semibold">Integration with CRMs</h3>
+                <p class="text-gray-600 mt-2">Sync data with tools like Salesforce, HubSpot, and Zapier.</p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+    <!-- Benefits Section -->
+    <section class="py-24 bg-gradient-to-r from-blue-100 to-white text-center">
+        <div class="max-w-7xl mx-auto px-6">
+            <h2 class="text-4xl font-bold text-gray-900 mb-12">Why Choose DialAI?</h2>
+
+            <!-- Benefits Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                
+                <!-- Benefit Text -->
+                <div class="text-left animate-fade-in">
+                    <ul class="space-y-4 text-lg text-gray-700">
+                        <li class="flex items-center"><span class="text-blue-600 text-2xl mr-3">✔</span> Save time by automating repetitive calls.</li>
+                        <li class="flex items-center"><span class="text-blue-600 text-2xl mr-3">✔</span> Improve response rates with AI-driven outreach.</li>
+                        <li class="flex items-center"><span class="text-blue-600 text-2xl mr-3">✔</span> Collect customer feedback effortlessly.</li>
+                        <li class="flex items-center"><span class="text-blue-600 text-2xl mr-3">✔</span> Scale up event RSVPs and surveys.</li>
+                    </ul>
+                </div>
+
+                <!-- Benefit Image -->
+                <div class="animate-slide-in">
+                    <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=500&q=80"
+                        alt="DialAI Benefits" class="rounded-lg shadow-md">
+                </div>
+
+            </div>
+        </div>
+    </section>
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="py-24 bg-gradient-to-r from-purple-50 to-white text-center">
+        <div class="max-w-7xl mx-auto px-6">
+            <h2 class="text-4xl font-bold text-gray-900 mb-12 animate-fade-in">How DialAI Works</h2>
+
+            <!-- Steps Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                
+                <!-- Step 1 -->
+                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition duration-300 animate-slide-in">
+                    <img src="https://img.icons8.com/ios/50/000000/edit-file.png" class="mx-auto mb-4" />
+                    <h3 class="text-2xl font-semibold">Enter Your Prompt</h3>
+                    <p class="text-gray-600 mt-2">Write your script or use a pre-built template.</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition duration-300 animate-slide-in">
+                    <img src="https://img.icons8.com/ios/50/000000/upload.png" class="mx-auto mb-4" />
+                    <h3 class="text-2xl font-semibold">Upload Contacts</h3>
+                    <p class="text-gray-600 mt-2">Import phone numbers manually or via CSV.</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition duration-300 animate-slide-in">
+                    <img src="https://img.icons8.com/ios/50/000000/phone-disconnected.png" class="mx-auto mb-4" />
+                    <h3 class="text-2xl font-semibold">AI Calls & Records</h3>
+                    <p class="text-gray-600 mt-2">AI dials numbers, delivers your message, and records responses.</p>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition duration-300 animate-slide-in">
+                    <img src="https://img.icons8.com/ios/50/000000/statistics.png" class="mx-auto mb-4" />
+                    <h3 class="text-2xl font-semibold">Analyze Results</h3>
+                    <p class="text-gray-600 mt-2">View categorized responses and insights on your dashboard.</p>
+                </div>
+
+            </div>
+
+            <!-- Flowchart Image Aligned Right -->
+            <!-- <div class="mt-12 flex justify-center">
+                <img src="work.png" alt="AI Calling Flowchart" class="rounded-lg shadow-lg w-3/4 md:w-1/2">
+            </div> -->
+            
+        </div>
+    </section>  
+
+    <section id="callNow" class="py-16 bg-purple-100">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-12">
+            
+            <!-- Image Section -->
+            <div class="md:w-1/2 flex justify-center md:justify-start">
+                <img src="{% static 'image1.png' %}" alt="Automated Call" 
+                     class="rounded-lg shadow-2xl hover:scale-105 transition-transform duration-300 w-full max-w-md md:max-w-lg">
+            </div>  
+    
+            <!-- Form Section -->
+            <div class="md:w-1/2 flex flex-col items-center md:items-start">
+                <h2 class="text-3xl font-bold text-purple-700 text-center md:text-left">Automate Your Calls</h2>
+                <p class="mt-2 text-gray-600 text-center md:text-left">Let AI make calls and collect responses for you.</p>
+                
+                <!-- Form Container -->
+                <div class="mt-6 bg-white p-6 rounded-xl shadow-md w-full max-w-md">
+                    <form method="post" id="callRequestForm">
+                        {% csrf_token %}
+                        <!-- Phone Number Input -->
+                        <div class="mb-4">
+                            <label for="phone_number" class="block text-gray-700 font-semibold mb-1">Phone Number:</label>
+                            <input type="text" id="phone_number" name="phone_number" required
+                                class="w-full border border-purple-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="Enter phone number: +916376550616">
+                            <div id="phoneError" class="text-red-500 text-sm mt-1"></div>
+                        </div>
+                        
+                        <!-- Message Input -->
+                        <div class="mb-4">
+                            <label for="message" class="block text-gray-700 font-semibold mb-1">Your Message:</label>
+                            <textarea id="message" name="message" required
+                                class="w-full border border-purple-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="Enter your message: Please leave some message"></textarea>
+                            <div id="messageError" class="text-red-500 text-sm mt-1"></div>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <button type="submit" 
+                                class="mt-4 w-full bg-purple-600 text-white px-5 py-3 rounded-full hover:bg-purple-700 transition">
+                            Call Now
+                        </button>
+                    </form>
+                </div> 
+            </div>
+    
+        </div>
+    </section>
+    
+    
+    
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-24 bg-white text-center">
+        <div class="max-w-7xl mx-auto px-6">
+            <h2 class="text-4xl font-bold text-gray-900 mb-12 animate-fade-in">Simple, Transparent Pricing</h2>
+    
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Free Trial Plan -->
+                <div class="p-8 border rounded-lg shadow-lg hover:shadow-xl transition duration-300 animate-slide-in">
+                    <h3 class="text-2xl font-semibold text-gray-900">Free Trial</h3>
+                    <p class="text-gray-600 mt-2">Get started with 100 free calls.</p>
+                    <p class="text-4xl font-bold mt-4 text-purple-600">$0</p>
+                    <a href="#" class="block bg-purple-600 text-white px-6 py-3 rounded-full mt-6 hover:bg-purple-700">
+                        Start Free Trial
+                    </a>
+                </div>
+    
+                <!-- Basic Plan -->
+                <div class="p-8 border rounded-lg shadow-lg hover:shadow-xl transition duration-300 animate-slide-in">
+                    <h3 class="text-2xl font-semibold text-gray-900">Basic Plan</h3>
+                    <p class="text-gray-600 mt-2">Perfect for small teams or individuals.</p>
+                    <ul class="text-left text-gray-600 mt-4 space-y-2">
+                        <li class="flex items-center">
+                            <span class="text-green-500 mr-2">✔️</span> Up to 1,000 calls/month
+                        </li>
+                        <li class="flex items-center">
+                            <span class="text-green-500 mr-2">✔️</span> Customizable scripts
+                        </li>
+                        <li class="flex items-center">
+                            <span class="text-green-500 mr-2">✔️</span> Real-time response tracking
+                        </li>
+                    </ul>
+                    <p class="text-4xl font-bold mt-4 text-purple-600">$5/month</p>
+                    <a href="#" class="block bg-purple-600 text-white px-6 py-3 rounded-full mt-6 hover:bg-purple-700">
+                        Choose Plan
+                    </a>
+                </div>
+    
+                <!-- Pro Plan -->
+                <div class="p-8 border rounded-lg shadow-lg hover:shadow-xl transition duration-300 animate-slide-in relative">
+                    <!-- Most Popular Badge -->
+                    <div class="absolute top-0 right-0 bg-purple-600 text-white px-4 py-2 rounded-bl-lg">
+                        Most Popular
+                    </div>
+                    <h3 class="text-2xl font-semibold text-gray-900">Pro Plan</h3>
+                    <p class="text-gray-600 mt-2">For businesses with advanced needs.</p>
+                    <ul class="text-left text-gray-600 mt-4 space-y-2">
+                        <li class="flex items-center">
+                            <span class="text-green-500 mr-2">✔️</span> Unlimited calls
+                        </li>
+                        <li class="flex items-center">
+                            <span class="text-green-500 mr-2">✔️</span> Advanced analytics
+                        </li>
+                        <li class="flex items-center">
+                            <span class="text-green-500 mr-2">✔️</span> Follow-up automation
+                        </li>
+                        <li class="flex items-center">
+                            <span class="text-green-500 mr-2">✔️</span> Multi-language support
+                        </li>
+                        <li class="flex items-center">
+                            <span class="text-green-500 mr-2">✔️</span> CRM integrations
+                        </li>
+                    </ul>
+                    <p class="text-4xl font-bold mt-4 text-purple-600">$10/month</p>
+                    <a href="#" class="block bg-purple-600 text-white px-6 py-3 rounded-full mt-6 hover:bg-purple-700">
+                        Choose Plan
+                    </a>
+                </div>
+            </div>
+    
+            <!-- Compare Plans Link -->
+            <p class="mt-12 text-gray-600 animate-fade-in">
+                Not sure which plan is right for you? <a href="#" class="text-purple-600 font-semibold hover:underline">Compare plans</a>.
+            </p>
+    
+            <!-- Enterprise Contact -->
+            <p class="mt-6 text-gray-600 animate-fade-in">
+                Need enterprise-level solutions? <a href="#" class="text-purple-600 font-semibold hover:underline">Contact us</a> for custom pricing.
+            </p>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="py-24 bg-gray-50 text-center">
+        <div class="max-w-7xl mx-auto px-6">
+            <h2 class="text-4xl font-bold text-gray-900 mb-12 animate-fade-in">What Our Users Are Saying</h2>
+
+            <!-- Testimonials Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                
+                <!-- Testimonial Card -->
+                <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition duration-300 animate-slide-in">
+                    <img src="https://randomuser.me/api/portraits/women/44.jpg" 
+                        alt="Sarah" class="w-16 h-16 rounded-full mx-auto mb-4">
+                    <h3 class="text-xl font-semibold">Sarah, Event Planner</h3>
+                    <p class="text-gray-600 mt-2">"Using this tool cut our RSVP collection time in half! Highly recommended!"</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition duration-300 animate-slide-in">
+                    <img src="https://randomuser.me/api/portraits/men/32.jpg" 
+                        alt="John" class="w-16 h-16 rounded-full mx-auto mb-4">
+                    <h3 class="text-xl font-semibold">John, Sales Manager</h3>
+                    <p class="text-gray-600 mt-2">"Our customer response rates have doubled since we started using DialAI!"</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition duration-300 animate-slide-in">
+                    <img src="https://randomuser.me/api/portraits/women/55.jpg" 
+                        alt="Lisa" class="w-16 h-16 rounded-full mx-auto mb-4">
+                    <h3 class="text-xl font-semibold">Lisa, HR Coordinator</h3>
+                    <p class="text-gray-600 mt-2">"The AI follow-up feature has streamlined our recruitment calls. Amazing tool!"</p>
+                </div>
+
+            </div>
+
+            <!-- Company Logos -->
+            <div class="mt-12 flex flex-wrap justify-center gap-x-8 p-[9px] items-center animate-fade-in">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" class="h-12 animate-bounce">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" class="h-12 animate-pulse">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/bd/Tesla_Motors.svg" class="h-12 animate-bounce">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" class="h-12 animate-pulse">
+            </div>            
+
+        </div>
+    </section>
+
+    <!-- Demo Video Section -->
+    <section class="py-24 bg-white text-center">
+        <div class="max-w-7xl mx-auto px-6">
+            <h2 class="text-4xl font-bold text-gray-900 mb-12 animate-fade-in">Demo Video</h2>
+            <div class="relative aspect-video max-w-4xl mx-auto rounded-lg shadow-2xl overflow-hidden">
+                <video class="w-full h-full" controls poster="https://via.placeholder.com/800x450">
+                    <source src="https://www.example.com/demo-video.mp4" type="video/mp4" />
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+    </section>
+    
+    <!-- FAQ Section -->
+    <section id="faq" class="py-24 bg-gray-50">
+        <div class="max-w-6xl mx-auto px-6">
+            <h2 class="text-4xl font-bold text-gray-900 mb-12 text-center animate-fade-in">
+                Frequently Asked Questions
+            </h2>
+    
+            <div class="space-y-4">
+                <!-- FAQ Item 1 -->
+                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                    <h3 class="text-xl font-semibold flex justify-between items-center cursor-pointer" onclick="toggleFaq(1)">
+                        How does the AI handle different languages?
+                        <span id="icon-1" class="text-purple-600 text-2xl">+</span>
+                    </h3>
+                    <p id="faq-1" class="hidden text-gray-600 mt-4 text-left">
+                        DialAI supports multiple languages using advanced AI-driven voice synthesis and recognition. Whether your audience speaks English, Spanish, French, or any other language, DialAI ensures seamless communication.
+                    </p>
+                </div>
+    
+                <!-- FAQ Item 2 -->
+                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                    <h3 class="text-xl font-semibold flex justify-between items-center cursor-pointer" onclick="toggleFaq(2)">
+                        Can I integrate this with my existing tools?
+                        <span id="icon-2" class="text-purple-600 text-2xl">+</span>
+                    </h3>
+                    <p id="faq-2" class="hidden text-gray-600 mt-4 text-left">
+                        Yes! DialAI offers API access and integrations with popular tools like Salesforce, HubSpot, Zapier, and Google Calendar. You can easily sync data and automate workflows.
+                    </p>
+                </div>
+    
+                <!-- FAQ Item 3 -->
+                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                    <h3 class="text-xl font-semibold flex justify-between items-center cursor-pointer" onclick="toggleFaq(3)">
+                        Is it secure?
+                        <span id="icon-3" class="text-purple-600 text-2xl">+</span>
+                    </h3>
+                    <p id="faq-3" class="hidden text-gray-600 mt-4 text-left">
+                        Absolutely! DialAI uses end-to-end encryption and complies with GDPR and other data protection regulations. Your data and your customers' data are always safe with us.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function toggleFaq(id) {
+            let answer = document.getElementById('faq-' + id);
+            let icon = document.getElementById('icon-' + id);
+            if (answer.classList.contains('hidden')) {
+                answer.classList.remove('hidden');
+                icon.innerHTML = '-';
+            } else {
+                answer.classList.add('hidden');
+                icon.innerHTML = '+';
+            }
+        }
+    </script>
+
+    <!-- Demo Video Section -->
+    <!-- <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <h2 class="text-3xl font-bold text-center mb-12">See TalkTime in Action</h2>
+            <div class="flex justify-center">
+                <iframe width="800" height="450" src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+                        title="Demo Video" class="rounded-lg shadow-lg"></iframe>
+            </div>
+        </div>
+    </section> -->
+
+    <!-- Footer Section -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+
+            <!-- Quick Links -->
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="hover:underline">About Us</a></li>
+                    <li><a href="#" class="hover:underline">Privacy Policy</a></li>
+                    <li><a href="#" class="hover:underline">Terms of Service</a></li>
+                    <li><a href="#" class="hover:underline">Contact</a></li>
+                </ul>
+            </div>
+
+            <!-- Social Media Links -->
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Follow Us</h3>
+                <div class="flex space-x-4">
+                    <a href="#" class="hover:text-purple-400 transition"><i class="fab fa-facebook fa-lg"></i></a>
+                    <a href="#" class="hover:text-purple-400 transition"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="hover:text-purple-400 transition"><i class="fab fa-linkedin fa-lg"></i></a>
+                    <a href="#" class="hover:text-purple-400 transition"><i class="fab fa-instagram fa-lg"></i></a>
+                </div>
+            </div>
+
+            <!-- Newsletter Signup -->
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Stay Updated</h3>
+                <p class="text-gray-400 mb-4">Subscribe to our newsletter for updates & tips.</p>
+                <form class="flex">
+                    <input type="email" placeholder="Your email" class="px-4 py-2 rounded-l bg-gray-800 text-white border border-gray-700">
+                    <button type="submit" class="bg-purple-600 px-4 py-2 rounded-r hover:bg-purple-700 transition">Subscribe</button>
+                </form>
+            </div>
+
+        </div>
+
+        <div class="text-center mt-8 text-gray-500">
+            &copy; 2025 DialAI. All rights reserved.
+        </div>
+    </footer>
+
+
+</body>
+</html>

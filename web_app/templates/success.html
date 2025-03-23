@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Success</title>
+    <style>
+        /* Basic styling for the popup */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            text-align: center;
+        }
+        .popup a {
+            color: blue;
+            text-decoration: underline;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+    <h1>Success!</h1>
+    <p>Your recording is being processed...</p>
+
+    <!-- Hidden popup for download link -->
+    <div class="overlay" id="overlay"></div>
+    <div class="popup" id="popup">
+        <h2>📥 Recording Ready!</h2>
+        <p><a id="download-url" href="#" download>Click here to Download</a></p>
+        <href="/">Go back page</a></p>
+        <p>or</p>
+        <button onclick="closePopup()">Close</button>
+    </div>
+
+    <script>
+        function checkRecording() {
+            console.log("🔄 Checking for recording...");
+
+            fetch("/handle-recording/", { 
+                method: "GET"
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("📡 Server Response:", data);
+
+                if (data.success && data.download_url) {
+                    showPopup(data.download_url);  // ✅ Show popup with URL
+                } else {
+                    setTimeout(checkRecording, 5000);  // Retry in 5 sec
+                }
+            })
+            .catch(error => console.error("❌ Error:", error));
+        }
+
+        function showPopup(url) {
+            document.getElementById("download-url").href = url;
+            document.getElementById("overlay").style.display = "block";
+            document.getElementById("popup").style.display = "block";
+        }
+
+        function closePopup() {
+            document.getElementById("overlay").style.display = "none";
+            document.getElementById("popup").style.display = "none";
+        }
+
+        window.onload = checkRecording;  // Start checking when the page loads
+    </script>
+
+</body>
+</html>
