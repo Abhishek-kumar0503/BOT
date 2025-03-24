@@ -114,12 +114,19 @@ USE_I18N = True
 USE_TZ = True
 
 ALLOWED_HOSTS = ['*']
+
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+NGROK_URL = os.getenv("NGROK_URL", "http://127.0.0.1:8000") 
+
 ALLOWED_HOSTS = [
     '127.0.0.1',  # Allow localhost
     'localhost',  # Allow localhost
-    '7d6a-103-69-14-55.ngrok-free.app',  # Add your Ngrok domain
+    NGROK_URL.replace("https://", "").replace("http://", ""),  # Extract host from URL
 ]
-
 print(f"ALLOWED_HOSTS: {ALLOWED_HOSTS}") 
 
 # Static files (CSS, JavaScript, Images)
@@ -145,19 +152,19 @@ DEBUG = True
 
 
 
-import environ
-import os
+# import environ
+# import os
 
-# Initialize environment variables
-env = environ.Env()
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+# # Initialize environment variables
+# env = environ.Env()
+# environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
-# Use the environment variables
-TWILIO_ACCOUNT_SID = env('TWILIO_ACCOUNT_SID')
-TWILIO_AUTH_TOKEN = env('TWILIO_AUTH_TOKEN')
-TWILIO_PHONE_NUMBER = env('TWILIO_PHONE_NUMBER')
+# # Use the environment variables
+# TWILIO_ACCOUNT_SID = env('TWILIO_ACCOUNT_SID')
+# TWILIO_AUTH_TOKEN = env('TWILIO_AUTH_TOKEN')
+# TWILIO_PHONE_NUMBER = env('TWILIO_PHONE_NUMBER')
 
-ELEVENLABS_API_KEY = env('ELEVENLABS_API_KEY')
-ELEVENLABS_VOICE_ID = env('ELEVENLABS_VOICE_ID')
+# ELEVENLABS_API_KEY = env('ELEVENLABS_API_KEY')
+# ELEVENLABS_VOICE_ID = env('ELEVENLABS_VOICE_ID')
 
-NGROK_URL = env('NGROK_URL')
+# NGROK_URL = env('NGROK_URL')
