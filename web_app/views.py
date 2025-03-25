@@ -282,10 +282,10 @@ def initiate_call(phone_number, message):
     # while not recording_saved:
     #     time.sleep(1)
     return call.sid
-    print("✅ Recording saved. Exiting...")
+    # print("✅ Recording saved. Exiting...")
 
-    temp= True
-    return temp
+    # temp= True
+    # return temp
 
 @csrf_exempt
 def call_request(request):
@@ -374,50 +374,69 @@ def voice(request):
 
 @csrf_exempt
 def handle_recording(request):
-    print("✅ Received POST request from Twilio at /handle-recording")
+    print("✅ Received request at /handle-recording")
 
-    recording_sid = request.GET.get("RecordingSid")
-    # recording_sid=call_sid
-    if not recording_sid:
-        print("❌ Error: No RecordingSid received!")
-        return HttpResponse("Error: Recording SID not found.", status=400)
+    recording_sid = None
 
-    # Twilio recording URL (Authenticated)
+    if request.method == 'GET':
+        recording_sid = request.GET.get("RecordingSid")
+    else:  # POST request from Twilio
+        recording_sid = request.POST.get("RecordingSid")
+
+    print(f"📌 Received RecordingSid: {recording_sid}")
+
+    # Ignore invalid RecordingSid (must start with 'RE')
+    if not recording_sid or not recording_sid.startswith("RE"):
+        print(f"⚠️ valid RecordingSid: {recording_sid}")
+        # return JsonResponse({"success": False, "error": "Invalid or missing RecordingSid"})
+
+    # Twilio recording URL
     recording_url = f"https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Recordings/{recording_sid}.mp3"
-    print(f"🔗 Recording URL: {recording_url}")
+    print(f"🔗 Attempting to fetch recording from: {recording_url}")
+    print(f'Recording SID: {recording_sid}')
 
-    # Ensure the media directory exists
+    # Ensure media directory exists
     media_directory = settings.MEDIA_ROOT
+    print("6")
     if not os.path.exists(media_directory):
         os.makedirs(media_directory)
 
     filename = f"recording_{recording_sid}.mp3"
+    print("7")
     file_path = os.path.join(media_directory, filename)
 
     # Retry logic to wait for recording availability
-    max_retries = 6  # Retry for 30 seconds
-    retry_delay = 5   # Wait 5 seconds per attempt
+    max_retries = 6
+    retry_delay = 5
 
     for attempt in range(max_retries):
-        response = requests.get(recording_url, auth=(account_sid, auth_token))  # Authenticate request
+        response = requests.get(recording_url, auth=(account_sid, auth_token))
+
         if response.status_code == 200:
-            # Save the recording locally
             with open(file_path, "wb") as f:
                 f.write(response.content)
 
             print(f"✅ Recording saved: {filename}")
 
-            # Generate a correct public download URL
+            # Generate the public download URL
             public_download_url = request.build_absolute_uri(f"{NGROK_URL}/media/{filename}")
             print(f"🔗 Public Download URL: {public_download_url}")
-            
-            return JsonResponse({"download_url": public_download_url})
-            # return redirect(f"/success/?download_url={public_download_url}")
-            # return redirect('/success/', public_download_url)
+            # return JsonResponse({"download_url": public_download_url})
+            if request.method == "POST":
+                response = JsonResponse({"success": True, "download_url": public_download_url})
+                print(f"📡 Response sent: {response.content.decode()}")  # Debugging
+                return response
+                
+            # If it's a POST request, redirect to the GET endpoint
+            return redirect(f"{NGROK_URL}/handle-recording/?RecordingSid={recording_sid}")
 
-        else:
-            print(f"⏳ Attempt {attempt + 1}: Recording not ready yet. Retrying in {retry_delay} seconds...")
-            time.sleep(retry_delay)
+        print(f"⏳ Attempt {attempt + 1}: Recording not ready yet. Retrying in {retry_delay} seconds...")
+        time.sleep(retry_delay)
+
+    # If the recording is still not ready after max retries, return an error response
+    print("❌ Error: Recording was not available after multiple retries.")
+    return JsonResponse({"success": False, "error": "Recording not available yet."})
+
 
 def success(request):
     download_url= request.GET.get('download_url')
