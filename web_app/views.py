@@ -299,30 +299,32 @@ def call_request(request):
             print(f"📞 Initiating call to: {phone_number}, Message: {message}")
 
             # Call initiate_call synchronously (no threading)
-            call_sid = initiate_call(phone_number, message)
-            print(call_sid)
-
-            target_url = f"{NGROK_URL}/handle-recording/"
+            request.call_sid = initiate_call(phone_number, message)
+            # print(call_sid)
+            return render(request, 'success.html')
+            # target_url = f"{NGROK_URL}/handle-recording/"
             
-            data = {
-                'RecordingSid': call_sid
-            }
-
-            headers = {
-                'Content-Type': 'application/json' # or another content type if needed
-                # 'Authorization': 'Bearer YOUR_TOKEN',  # If the target API requires auth
-            }
-
-            response = requests.post(target_url, json=data, headers=headers)
-            data=response.json()
-            print(response)
-            if call_sid:
-                # return render(request, 'myapp/index.html', {'target_url': target_url})
-                # download_url=request.GET.get('download_url')
-                # {'download_url': response['download_url']}
-                return render(request, 'success.html', {'download_url': data.get('download_url', 'No URL')})
-            else:
-                print("Error123")
+            # data = {
+            #     'RecordingSid': call_sid
+            # }
+            # headers = {
+            #     'Content-Type': 'application/json' # or another content type if needed
+            #     # 'Authorization': 'Bearer YOUR_TOKEN',  # If the target API requires auth
+            # }
+            # response = requests.post(target_url, json=data, headers=headers)
+            # data=response.json()
+            # print(response)
+            # if call_sid:
+            #     while 'download_url' not in data:
+            #         time.sleep(1)
+            #         response = requests.post(target_url, json=data, headers=headers)
+            #         data=response.json()
+            #     # return render(request, 'myapp/index.html', {'target_url': target_url})
+            #     # download_url=request.GET.get('download_url')
+            #     # {'download_url': response['download_url']}
+            #     return render(request, 'success.html', {'download_url': data.get('download_url', 'No URL')})
+            # else:
+            #     print("Error123")
     else:
         form = CallRequestForm()
     return render(request, 'call_request.html', {'form': form})
@@ -374,7 +376,7 @@ def voice(request):
 def handle_recording(request):
     print("✅ Received POST request from Twilio at /handle-recording")
 
-    recording_sid = request.POST.get("RecordingSid")
+    recording_sid = request.GET.get("RecordingSid")
     # recording_sid=call_sid
     if not recording_sid:
         print("❌ Error: No RecordingSid received!")

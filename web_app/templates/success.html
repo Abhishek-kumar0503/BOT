@@ -71,7 +71,7 @@
             console.log("🔄 Checking for recording...");
 
             try {
-                let response = await fetch("/handle-recording/", { method: "GET" });
+                let response = await fetch("/handle-recording/?RecordingSid={{ request.call_sid }}", { method: "GET" });
                 
                 if (!response.ok) {  
                     let text = await response.text(); // Read response as text
@@ -84,6 +84,8 @@
 
                 if (data.success && data.download_url) {
                     console.log(data.download_url);
+                    // replace or append here 
+                    // <p><a id="download-url" href="#" download>Click here to Download</a></p>
                 } else {
                     setTimeout(checkRecording, 5000);
                 }
@@ -91,7 +93,7 @@
                 console.error("❌ Error:", error);
             }
         }
-        // window.onload = checkRecording;  // Start checking when the page loads
+        window.onload = checkRecording;  // Start checking when the page loads
     </script>
 
 </body>
