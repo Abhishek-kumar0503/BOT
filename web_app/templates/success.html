@@ -5,82 +5,142 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Success</title>
     <style>
-        /* Basic styling for the popup */
-        .popup {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 20px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
+        body {
+            font-family: Arial, sans-serif;
             text-align: center;
+            padding: 50px;
+            max-width: 800px;
+            margin: 0 auto;
         }
-        .popup a {
-            color: blue;
-            text-decoration: underline;
+        .loading {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(0,0,0,.3);
+            border-radius: 50%;
+            border-top-color: #000;
+            animation: spin 1s ease-in-out infinite;
+            margin: 20px auto;
         }
-        .overlay {
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .download-section {
             display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .download-btn {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .download-btn:hover {
+            background-color: #45a049;
+        }
+        .home-btn {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .home-btn:hover {
+            background-color: #0056b3;
+        }
+        .status {
+            font-size: 16px;
+            color: #555;
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
     <h1>Success!</h1>
-    <p>Your recording is being processed...</p>
-
-    <!-- Hidden popup for download link -->
-    <div class="overlay" id="overlay"></div>
-    <div class="popup" id="popup">
-        <h2>📥 Recording Ready!</h2>
-        <p><a id="download-url" href="#" download>Click here to Download</a></p>
-        <href="/">Go back page</a></p>
-        <p>or</p>
-        <button onclick="closePopup()">Close</button>
+    
+    <!-- Loading section (initially visible) -->
+    <div id="loading-section">
+        <p>Your recording is being processed...</p>
+        <div class="loading" id="loading-spinner"></div>
+        <p class="status" id="status-message">Waiting for recording to be ready...</p>
+    </div>
+    
+    <!-- Download section (initially hidden) -->
+    <div id="download-section" class="download-section">
+        <h2>📥 Your Recording is Ready!</h2>
+        <p>Your call has been successfully recorded. Click the button below to download.</p>
+        <a id="download-url" href="#" class="download-btn" download>Download Recording</a>
+        <p>You can listen to the recording or save it for future reference.</p>
+    </div>
+    
+    <div>
+        <a href="/" class="home-btn">Back to Home</a>
     </div>
 
     <script>
-        function checkRecording() {
-            console.log("🔄 Checking for recording...");
-
-            fetch("/handle-recording/", { 
-                method: "GET"
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log("📡 Server Response:", data);
-
-                if (data.success && data.download_url) {
-                    showPopup(data.download_url);  // ✅ Show popup with URL
-                } else {
-                    setTimeout(checkRecording, 5000);  // Retry in 5 sec
-                }
-            })
-            .catch(error => console.error("❌ Error:", error));
-        }
-
-        function showPopup(url) {
+        // Always start polling - we want to wait for the new recording
+        console.log("Starting polling for new recording...");
+        
+        // Don't even check for initial URL - always poll for fresh data
+        checkFileExists();
+        
+        function showDownloadSection(url) {
+            // Set the download URL
             document.getElementById("download-url").href = url;
-            document.getElementById("overlay").style.display = "block";
-            document.getElementById("popup").style.display = "block";
+            
+            // Hide loading section
+            document.getElementById("loading-section").style.display = "none";
+            
+            // Show download section
+            document.getElementById("download-section").style.display = "block";
+            
+            // Play a notification sound (optional)
+            playNotificationSound();
         }
-
-        function closePopup() {
-            document.getElementById("overlay").style.display = "none";
-            document.getElementById("popup").style.display = "none";
+        
+        function playNotificationSound() {
+            try {
+                const audio = new Audio("data:audio/wav;base64,//uQRAAAAWMSLwUIYAAsYkXgoQwAEaYLWfkWgAI0wWs/ItAAAGDgYtAgAyN+QWaAAihwMWm4G8QQRDiMcCBcH3Cc+CDv/7xA4Tvh9Rz/y8QADBwMWgQAZG/ILNAARQ4GLTcDeIIIhxGOBAuD7hOfBB3/94gcJ3w+o5/5eIAIAAAVwWgQAVQ2ORaIQwEMAJiDg95G4nQL7mQVWI6GwRcfsZAcsKkJvxgxEjzFUgfHoSQ9Qq7KNwqHwuB13MA4a1q/DmBrHgPcmjiGoh//EwC5nGPEmS4RcfkVKOhJf+WOgoxJclFz3kgn//dBA+ya1GhurNn8zb//9NNutNuhz31f////9vt///z+IdAEAAAK4LQIAKobHItEIYCGAExBwe8jcToF9zIKrEdDYIuP2MgOWFSE34wYiR5iqQPj0JIeoVdlG4VD4XA67mAcNa1fhzA1jwHuTRxDUQ//iYBczjHiTJcIuPyKlHQkv/LHQUYkuSi57yQT//uggfZNajQ3Vmz+Zt//+mm3Wm3Q576v////+32///5/EOgAAADVghQAAAAA//uQZAUAB1WI0PZugAAAAAoQwAAAEk3nRd2qAAAAACiDgAAAAAAABCqEEQRLCgwpBGMlJkIz8jKhGvj4k6jzRnqasNKIeoh5gI7BJaC1A1AoNBjJgbyApVS4IDlZgDU5WUAxEKDNmmALHzZp0Fkz1FMTmGFl1FMEyodIavcCAUHDWrKAIA4aa2ooDBGFRSKLUCQKnFhXEE+W1t9DnyBF/OUMAAAASdFkfw");
+                audio.play();
+            } catch (e) {
+                console.log("Could not play notification sound");
+            }
         }
-
-        window.onload = checkRecording;  // Start checking when the page loads
+    
+        async function checkFileExists() {
+            try {
+                console.log("Checking if recording file exists...");
+                document.getElementById("status-message").textContent = "Checking for recording...";
+                
+                // Add a random parameter to prevent caching
+                const response = await fetch(`/success/?check_file=true&_=${Date.now()}`);
+                const data = await response.json();
+                
+                if (data.download_url) {
+                    console.log("✅ Download URL found:", data.download_url);
+                    showDownloadSection(data.download_url);
+                } else {
+                    console.log("⏳ Recording not ready yet, checking again in 5 seconds");
+                    document.getElementById("status-message").textContent = "Still processing... checking again in 5 seconds";
+                    setTimeout(checkFileExists, 5000);
+                }
+            } catch (error) {
+                console.error("❌ Error checking file:", error);
+                document.getElementById("status-message").textContent = "Error checking recording. Retrying in 5 seconds...";
+                setTimeout(checkFileExists, 5000);
+            }
+        }
     </script>
-
 </body>
 </html>
