@@ -66,7 +66,7 @@
         //     .catch(error => console.error("❌ Error:", error));
         // }
     </script>
-    <script>
+<!--     <script>
         async function checkRecording() {
             console.log("🔄 Checking for recording...");
 
@@ -94,6 +94,44 @@
             }
         }
         window.onload = checkRecording;  // Start checking when the page loads
+    </script> -->
+    <script>
+        async function checkRecording() {
+            console.log("🔄 Checking for recording...");
+
+            try {
+                let response = await fetch(`/handle-recording/?CallSid={{ request.call_sid }}`, { method: "GET" });
+                console.log("📄 Raw Response:", response);
+                
+                
+                if (!response.ok) {  
+                    throw new Error(`❌ Server Error: ${response}`);
+                }
+
+                let data = await response.json(); // Convert text to JSON
+                console.log("📡 Server Response:", data);
+
+                if (data.download_url) {
+                    console.log("🎉 Recording found:", data.download_url);
+
+                    let downloadLink = document.getElementById("download-url");
+                    if (downloadLink) {
+                        downloadLink.href = data.download_url;
+                        downloadLink.innerText = "📥 Download Recording";
+                        downloadLink.style.display = "block"; 
+                    }
+                } else {
+                    console.log("⏳ Recording not available yet, retrying in 5 seconds...");
+                    setTimeout(checkRecording, 5000);
+                }
+            } catch (error) {
+                console.error("❌ Error:", error);
+                setTimeout(checkRecording, 5000);
+            }
+        }
+
+        window.onload = checkRecording;
+
     </script>
 
 </body>
