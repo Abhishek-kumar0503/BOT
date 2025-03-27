@@ -150,21 +150,3 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # Ensure DEBUG is True for local development
 DEBUG = True  
 
-
-
-# import environ
-# import os
-
-# # Initialize environment variables
-# env = environ.Env()
-# environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
-
-# # Use the environment variables
-# TWILIO_ACCOUNT_SID = env('TWILIO_ACCOUNT_SID')
-# TWILIO_AUTH_TOKEN = env('TWILIO_AUTH_TOKEN')
-# TWILIO_PHONE_NUMBER = env('TWILIO_PHONE_NUMBER')
-
-# ELEVENLABS_API_KEY = env('ELEVENLABS_API_KEY')
-# ELEVENLABS_VOICE_ID = env('ELEVENLABS_VOICE_ID')
-
-# NGROK_URL = env('NGROK_URL')
