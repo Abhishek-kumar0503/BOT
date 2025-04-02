@@ -1,167 +1,4 @@
-{% comment %} <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Call Request Form</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'styles.css' %}">
-</head>
-<body>
-    <div class="form-container">
-        <h1>Call Request Form</h1>
-        <form method="post" id="callRequestForm">
-            {% csrf_token %}
-            <div class="form-group">
-                <label for="phone_number">Phone Number:</label>
-                <input type="text" id="phone_number" name="phone_number" required>
-                <div id="phoneError" class="error-message"></div>
-            </div>
-            <div class="form-group">
-                <label for="message">Your Message:</label>
-                <textarea id="message" name="message" required></textarea>
-                <div id="messageError" class="error-message"></div>
-            </div>
-            <div class="form-group">
-                <button type="submit">Submit</button>
-            </div>
-        </form>
-    </div>
-</body>
-</html> {% endcomment %}
 
-
-
-{% comment %} 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TalkTime - AI Automated Calling</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        function scrollToCallSection() {
-            document.getElementById("callNowSection").scrollIntoView({ behavior: "smooth" });
-        }
-    </script>
-</head>
-<body class="bg-gray-50 text-gray-900">
-
-    <!-- Navbar -->
-    <header class="flex justify-between items-center p-6 bg-white shadow-md">
-        <h1 class="text-xl font-bold text-purple-600"><span class="mr-1">📞</span> TalkTime</h1>
-        <nav>
-            <ul class="flex space-x-6">
-                <li><a href="#features" class="hover:text-purple-600">Features</a></li>
-                <li><a href="#use-case" class="hover:text-purple-600">Use Cases</a></li>
-                <li><a href="#contact" class="hover:text-purple-600">Contact</a></li>
-            </ul>
-        </nav>
-        <a href="#" class="bg-purple-600 text-white px-5 py-2 rounded-full hover:bg-purple-700 transition">Get Started</a>
-    </header>
-
-    <!-- Hero Section -->
-    <section class="flex flex-col md:flex-row items-center px-10 py-20">
-        <div class="md:w-1/2 text-center md:text-left">
-            <h2 class="text-4xl font-bold leading-tight">
-                Automate <span class="text-purple-600">Your Calls</span> with AI
-            </h2>
-            <p class="mt-4 text-gray-600">
-                TalkTime is an AI-powered system that makes automated calls for you. Just enter a message, and AI will call multiple numbers, deliver your message, and record responses. Perfect for event RSVPs, surveys, feedback, and customer engagement.
-            </p>
-            <div class="mt-6 flex justify-center md:justify-start space-x-4">
-                <a href="#callNowSection" onclick="scrollToCallSection()" 
-                   class="bg-purple-600 text-white px-6 py-3 rounded-full hover:bg-purple-700 transition">Start Calling Now</a>
-                <a href="#" class="border border-purple-600 text-purple-600 px-6 py-3 rounded-full hover:bg-purple-100 transition">Learn More</a>
-            </div>
-        </div>
-        <div class="md:w-1/2 flex justify-center mt-10 md:mt-0 relative">
-            <div class="bg-gradient-to-r from-purple-100 to-pink-100 p-6 rounded-2xl shadow-lg relative">
-                {% load static %}
-                <img src="{% static 'image1.png' %}" alt="AI Calling" class="rounded-xl w-40 md:w-60">
-                <div class="absolute top-2 left-2 bg-white p-2 rounded-full shadow-lg">
-                    <span>📢</span>
-                </div>
-                <div class="absolute bottom-2 right-2 bg-white p-2 rounded-full shadow-lg">
-                    <span>📞</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Call Now Section -->
-    <section id="callNowSection" class="px-10 py-16 bg-purple-100 flex flex-col md:flex-row items-center">
-        <div class="md:w-1/2 flex justify-center">
-            <img src="{% static 'image2.jpg' %}" alt="Automated Call" class="w-64 md:w-80 rounded-lg shadow-lg">
-        </div>  
-
-        <div class="md:w-1/2 text-center md:text-left mt-6 md:mt-0">
-            <h2 class="text-3xl font-bold text-purple-700">Automate Your Calls</h2>
-            <p class="mt-2 text-gray-600">Let AI make calls and collect responses for you.</p>
-            <div class="mt-10 bg-white p-6 rounded-xl shadow-md">
-                <form method="post" id="callRequestForm">
-                    {% csrf_token %}
-                    <div class="mb-4">
-                        <label for="phone_number" class="block text-gray-700 font-semibold mb-1">Phone Number:</label>
-                        <input type="text" id="phone_number" name="phone_number" required
-                            class="w-full border border-purple-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            placeholder="Enter phone number : +916376550616">
-                        <div id="phoneError" class="text-red-500 text-sm mt-1"></div>
-                    </div>
-                    <div class="mb-4">
-                        <label for="message" class="block text-gray-700 font-semibold mb-1">Your Message:</label>
-                        <textarea id="message" name="message" required
-                                class="w-full border border-purple-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                placeholder="Enter your message : Please leave some message "></textarea>
-                        <div id="messageError" class="text-red-500 text-sm mt-1"></div>
-                    </div>
-                    <button type="submit" class="mt-4 w-full bg-purple-600 text-white px-5 py-3 rounded-full hover:bg-purple-700 transition">
-                        Call Now
-                    </button>
-                </form>
-            </div> 
-        </div>
-    </section>
-
-    <!-- Features Section -->
-    <section id="features" class="px-10 py-16 bg-white">
-        <h2 class="text-3xl font-bold text-center text-purple-700">Why Choose TalkTime?</h2>
-        <div class="grid md:grid-cols-3 gap-6 mt-10">
-            <div class="p-6 bg-purple-50 rounded-xl shadow">
-                <h3 class="text-lg font-semibold flex items-center space-x-2">
-                    <span class="text-purple-600">🔄</span> <span>Automated Calls</span>
-                </h3>
-                <p class="text-gray-600 mt-2">AI delivers messages to multiple contacts.</p>
-            </div>
-            <div class="p-6 bg-purple-50 rounded-xl shadow">
-                <h3 class="text-lg font-semibold flex items-center space-x-2">
-                    <span class="text-purple-600">📊</span> <span>Response Tracking</span>
-                </h3>
-                <p class="text-gray-600 mt-2">Records and organizes responses automatically.</p>
-            </div>
-            <div class="p-6 bg-purple-50 rounded-xl shadow">
-                <h3 class="text-lg font-semibold flex items-center space-x-2">
-                    <span class="text-purple-600">💡</span> <span>Custom Messages</span>
-                </h3>
-                <p class="text-gray-600 mt-2">Personalized messages for RSVPs, surveys, and more.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Use Case Section -->
-    <section id="use-case" class="px-10 py-16 bg-gray-100 text-center">
-        <h2 class="text-3xl font-bold text-purple-700">Who Can Use TalkTime?</h2>
-        <p class="mt-4 text-gray-600">Perfect for businesses, event planners, customer surveys, and automated follow-ups.</p>
-    </section>
-
-    <!-- Footer -->
-    <footer class="bg-purple-700 text-white text-center py-6">
-        <p>&copy; 2025 TalkTime. All rights reserved.</p>
-    </footer>
-
-</body>
-</html> {% endcomment %}
 
 
 <!DOCTYPE html>
@@ -430,7 +267,7 @@
             
         </div>
     </section>  
-
+    <!-- Call Now Section -->
     <section id="callNow" class="py-16 bg-purple-100">
         <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-12">
             
@@ -447,13 +284,21 @@
                 
                 <!-- Form Container -->
                 <div class="mt-6 bg-white p-6 rounded-xl shadow-md w-full max-w-md">
-                    <form method="post" id="callRequestForm">
+                    <!-- Display messages if any -->
+                    {% if messages %}
+                        <div class="mb-4 p-3 bg-blue-100 text-blue-700 rounded">
+                            {% for message in messages %}
+                                <p>{{ message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <form method="post" id="callRequestForm" data-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}" onsubmit="return checkLoginBeforeSubmit()">
                         {% csrf_token %}
                         <!-- Phone Number Input -->
                         <div class="mb-4">
                             <label for="phone_number" class="block text-gray-700 font-semibold mb-1">Phone Number:</label>
                             <input type="text" id="phone_number" name="phone_number" required
-                                class="w-full border border-purple-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                                 placeholder="Enter phone number: +916376550616">
                             <div id="phoneError" class="text-red-500 text-sm mt-1"></div>
                         </div>
@@ -462,7 +307,6 @@
                         <div class="mb-4">
                             <label for="message" class="block text-gray-700 font-semibold mb-1">Your Message:</label>
                             <textarea id="message" name="message" required
-                                class="w-full border border-purple-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                                 placeholder="Enter your message: Please leave some message"></textarea>
                             <div id="messageError" class="text-red-500 text-sm mt-1"></div>
                         </div>
@@ -473,10 +317,28 @@
                             Call Now
                         </button>
                     </form>
-                </div> 
+                </div>
+                <script>
+                    function checkLoginBeforeSubmit() {
+                        // Store authentication status in a data attribute instead
+                        const isAuthenticated = document.getElementById('callRequestForm').dataset.authenticated === 'true';
+                        
+                        if (!isAuthenticated) {
+                            // Save the current URL in session storage to return after login
+                            window.location.href = "{% url 'login' %}?next={{ request.path|urlencode }}";
+                            return false; // Prevent form submission
+                        }
+                        
+                        return true; // Allow form submission
+                    }
+                </script>
+                
+                <!-- Add data attribute to the form -->
+                <form method="post" id="callRequestForm" data-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}" onsubmit="return checkLoginBeforeSubmit()">
             </div>
     
         </div>
+        
     </section>
     
     
