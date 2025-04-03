@@ -170,15 +170,44 @@
             </div>
         </div>
         {% endif %}
+        
+        <!-- Modal for viewing full transcription -->
+        <div id="transcriptionModal" class="fixed inset-0 hidden bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">Call Transcription</h3>
+                    <button onclick="hideTranscription()" class="text-gray-500 hover:text-gray-800">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="transcription-content" class="text-gray-700 bg-gray-50 p-4 rounded whitespace-pre-wrap"></div>
+            </div>
+        </div>
+        
+        <!-- Reset button -->
+        <div class="text-center mt-4 pb-8">
+            <button id="resetReloadCounter" class="text-xs text-gray-500 hover:text-gray-700">
+                Reset page state
+            </button>
+        </div>
     </div>
-
+</body>
     <script>
         // Function to check if recording file is ready
         function checkRecordingFile() {
+            // Get recording URL from localStorage to prevent reloading loop
+            const currentPageUrl = window.location.href.split('?')[0];
+            const reloadKey = 'already_reloaded_' + currentPageUrl;
+            const reloadCount = parseInt(localStorage.getItem(reloadKey) || '0');
+            
             fetch('?check_file=true')
                 .then(response => response.json())
                 .then(data => {
+                    console.log("Checking recording status:", data); // Add this debug line
                     if (data.success) {
+                        console.log("✅ Recording found:", data.download_url);
                         // Recording is ready
                         document.getElementById('loading-section').classList.add('hidden');
                         document.getElementById('download-section').classList.remove('hidden');
@@ -189,28 +218,50 @@
                         downloadLink.href = data.download_url;
                         currentUrl.textContent = data.download_url;
                         
-                        // IMPORTANT: Also update the "Processing" status in the table
-                        // Try to find the first "Processing" label and replace it with a download link
+                        // Update "Processing" labels if any
                         const processingLabels = document.querySelectorAll('.bg-yellow-100.text-yellow-800');
                         if (processingLabels.length > 0) {
-                            const firstProcessingLabel = processingLabels[0];
-                            const tableCell = firstProcessingLabel.parentElement;
-                            
-                            // Create new download link
-                            tableCell.innerHTML = `
-                                <a href="${data.download_url}" class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm hover:bg-indigo-200 transition inline-flex items-center" download>
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                                    </svg>
-                                    Download
-                                </a>
-                            `;
+                            processingLabels.forEach(label => {
+                                const tableCell = label.parentElement;
+                                tableCell.innerHTML = `
+                                    <a href="${data.download_url}" class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm hover:bg-indigo-200 transition inline-flex items-center" download>
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                        </svg>
+                                        Download
+                                    </a>
+                                `;
+                            });
                         }
                         
+                        // Check if we need to reload for transcription
+                        if (reloadCount < 1) {
+                            console.log("Will reload once to show transcription");
+                            localStorage.setItem(reloadKey, '1');
+                            
+                            // If the transcription says "still in progress", wait longer
+                            if (data.transcription && data.transcription.includes("still in progress")) {
+                                console.log("Transcription still in progress, waiting longer...");
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 10000);  // Wait 10 seconds
+                            } else {
+                                // Regular delay
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 5000);
+                            }
+                        } else {
+                            console.log("Already reloaded, no further reloads needed");
+                            // Clean up localStorage after 3 minutes
+                            setTimeout(() => {
+                                localStorage.removeItem(reloadKey);
+                            }, 180000);
+                        }
                     } else {
+                        console.log("⏳ Recording not ready, checking again in 3 seconds...");
                         // Keep checking
-                        setTimeout(checkRecordingFile, 3000);
-                        document.getElementById('status-message').textContent = "Still processing your recording, please wait...";
+                        setTimeout(checkRecordingFile, 1500);
                     }
                 })
                 .catch(error => {
@@ -218,44 +269,42 @@
                     setTimeout(checkRecordingFile, 5000);
                 });
         }
-    
-        // Start checking when page loads
-        window.onload = function() {
-            checkRecordingFile();
-        };
-    </script>
-</body>
-<!-- Modal for viewing full transcription -->
-<div id="transcriptionModal" class="fixed inset-0 hidden bg-black bg-opacity-50 z-50 flex items-center justify-center">
-    <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-bold text-gray-800">Call Transcription</h3>
-            <button onclick="hideTranscription()" class="text-gray-500 hover:text-gray-800">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
-        </div>
-        <div id="transcription-content" class="text-gray-700 bg-gray-50 p-4 rounded whitespace-pre-wrap"></div>
-    </div>
-</div>
 
-<script>
-    // Add these functions to your existing JavaScript
-    function showTranscription(text) {
-        document.getElementById('transcription-content').textContent = text;
-        document.getElementById('transcriptionModal').classList.remove('hidden');
-    }
-    
-    function hideTranscription() {
-        document.getElementById('transcriptionModal').classList.add('hidden');
-    }
-
-    // Close modal when clicking outside
-    document.getElementById('transcriptionModal').addEventListener('click', function(event) {
-        if (event.target === this) {
-            hideTranscription();
+        // Modal functions
+        function showTranscription(text) {
+            document.getElementById('transcription-content').textContent = text;
+            document.getElementById('transcriptionModal').classList.remove('hidden');
         }
-    });
-</script>
+
+        function hideTranscription() {
+            document.getElementById('transcriptionModal').classList.add('hidden');
+        }
+
+        function resetPageState() {
+            localStorage.clear();
+            alert('Page state reset');
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Start checking for recording
+            checkRecordingFile();
+            
+            // Set up modal close on outside click
+            const modal = document.getElementById('transcriptionModal');
+            if (modal) {
+                modal.addEventListener('click', function(event) {
+                    if (event.target === this) {
+                        hideTranscription();
+                    }
+                });
+            }
+            
+            // Set up reset button
+            const resetButton = document.getElementById('resetReloadCounter');
+            if (resetButton) {
+                resetButton.addEventListener('click', resetPageState);
+            }
+        });
+    </script>
 </html>

@@ -8,101 +8,127 @@ from twilio.rest import Client
 from twilio.twiml.voice_response import VoiceResponse
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-from .forms import CallRequestForm
+from .forms import CallRequestForm, SignupForm, LoginForm
 from urllib.parse import quote
 import urllib.parse
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
-from .forms import SignupForm, LoginForm
 from dotenv import load_dotenv
 from django.contrib.auth.decorators import login_required
 from datetime import datetime
+import assemblyai as aai
+from .models import CallRequest
 
 # Load environment variables
 load_dotenv()
 
-# Twilio credentials
+# API credentials
 account_sid = os.getenv("TWILIO_ACCOUNT_SID")
 auth_token = os.getenv("TWILIO_AUTH_TOKEN")
 twilio_phone_number = os.getenv("TWILIO_PHONE_NUMBER")
-
-# ElevenLabs API details
 API_KEY = os.getenv("ELEVENLABS_API_KEY")
 VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID")
 TTS_URL = f"https://api.elevenlabs.io/v1/text-to-speech/{VOICE_ID}"
-
-
-
-# Ngrok URL
+assemblyai_api_key = os.getenv("ASSEMBLYAI_API_KEY")
 NGROK_URL = os.getenv("NGROK_URL")
 
-# Add this function to your views.py
-def transcribe_with_assemblyai(audio_url):
-    """Transcribe audio using AssemblyAI API"""
-    api_key = os.getenv("ASSEMBLYAI_API_KEY")
-    print(f"🔑 AssemblyAI API key: {api_key}")
-    
-    if not api_key:
-        print("❌ AssemblyAI API key not found in environment variables")
-        return "API key not configured"
-    
-    headers = {
-        "authorization": api_key,
-        "content-type": "application/json"
-    }
-    
-    # Create transcription request
-    data = {
-        "audio_url": audio_url,
-        "language_code": "en"  # You can change language code if needed
-    }
-    
-    # Submit transcription request
+# Replace your current transcribe_with_assemblyai function with this improved version:
+def transcribe_with_assemblyai(audio_path):
+    """Transcribe audio using AssemblyAI API with improved error handling"""
     try:
-        print(f"🎤 Submitting {audio_url} for transcription...")
-        response = requests.post(
-            "https://api.assemblyai.com/v2/transcript", 
-            json=data, 
-            headers=headers
-        )
+        aai.settings.api_key = assemblyai_api_key
+        print(f"🔑 AssemblyAI API key: {assemblyai_api_key[:8]}...")
+        print(f"🎤 Transcribing file at: {audio_path}")
         
-        if response.status_code != 200:
-            print(f"❌ AssemblyAI error: {response.text}")
-            return "Transcription request failed"
+        if not os.path.exists(audio_path):
+            return "File not found error"
         
-        transcript_id = response.json()["id"]
-        print(f"✅ Transcription job submitted with ID: {transcript_id}")
+        # Check file size (AssemblyAI has a 1GB limit)
+        file_size = os.path.getsize(audio_path)
+        if file_size > 1_000_000_000:  # 1GB in bytes
+            return "File too large for transcription"
+        elif file_size < 1000:  # Very small files are likely invalid
+            return "File too small, may not contain audio"
         
-        # Poll for completion
-        polling_endpoint = f"https://api.assemblyai.com/v2/transcript/{transcript_id}"
-        max_retries = 30  # Maximum number of polling attempts (90 seconds total)
+        print(f"📊 File size: {file_size/1_000_000:.2f}MB")
         
-        for attempt in range(max_retries):
-            print(f"🔄 Checking transcription status (attempt {attempt+1}/{max_retries})")
-            polling_response = requests.get(polling_endpoint, headers=headers)
+        # Try direct transcription first
+        try:
+            transcriber = aai.Transcriber()
+            transcript = transcriber.transcribe(audio_path)
             
-            if polling_response.status_code != 200:
-                print(f"❌ Error checking transcription status: {polling_response.text}")
-                return "Error checking transcription status"
-            
-            status = polling_response.json()["status"]
-            
-            if status == "completed":
-                text = polling_response.json()["text"]
-                print(f"✅ Transcription completed: {text[:100]}...")
-                return text
-            elif status == "error":
-                error_message = polling_response.json().get("error", "Unknown error")
-                print(f"❌ AssemblyAI transcription error: {error_message}")
-                return f"Transcription error: {error_message}"
-            
-            time.sleep(3)  # Wait before checking again
+            if transcript and hasattr(transcript, 'text'):
+                result = transcript.text
+                print(f"✅ Transcription successful: {result[:100]}...")
+                return result
+            elif isinstance(transcript, dict) and 'text' in transcript:
+                return transcript['text']
+        except Exception as direct_error:
+            print(f"⚠️ Direct transcription failed: {str(direct_error)}")
+            # Fall through to alternative method
         
-        return "Transcription timed out"
+        # Alternative method: Upload file manually and then transcribe URL
+        print("🔄 Trying alternative transcription method...")
+        with open(audio_path, "rb") as audio_file:
+            upload_url = None
+            
+            # Make direct upload request
+            upload_response = requests.post(
+                "https://api.assemblyai.com/v2/upload",
+                headers={"authorization": assemblyai_api_key},
+                data=audio_file
+            )
+            
+            if upload_response.status_code == 200:
+                upload_url = upload_response.json()["upload_url"]
+                print(f"📤 Upload successful: {upload_url[:30]}...")
+            else:
+                return f"Upload failed with status {upload_response.status_code}: {upload_response.text}"
+            
+            # Submit for transcription using upload URL
+            transcript_response = requests.post(
+                "https://api.assemblyai.com/v2/transcript",
+                headers={
+                    "authorization": assemblyai_api_key,
+                    "content-type": "application/json"
+                },
+                json={"audio_url": upload_url}
+            )
+            
+            if transcript_response.status_code != 200:
+                return f"Transcription request failed: {transcript_response.text}"
+            
+            transcript_id = transcript_response.json()["id"]
+            polling_endpoint = f"https://api.assemblyai.com/v2/transcript/{transcript_id}"
+            
+            # Poll for results
+            max_polls = 12  # 60 seconds max
+            for i in range(max_polls):
+                print(f"⏳ Polling for results ({i+1}/{max_polls})...")
+                poll_response = requests.get(
+                    polling_endpoint,
+                    headers={"authorization": assemblyai_api_key}
+                )
+                
+                if poll_response.status_code != 200:
+                    return f"Polling failed: {poll_response.text}"
+                
+                status = poll_response.json()["status"]
+                if status == "completed":
+                    return poll_response.json()["text"]
+                elif status == "error":
+                    return f"Transcription error: {poll_response.json()['error']}"
+                
+                time.sleep(5)
+            
+            return "Transcription still in progress, please check later"
+            
     except Exception as e:
         print(f"❌ Exception during transcription: {str(e)}")
-        return f"Transcription exception: {str(e)}"
+        import traceback
+        traceback.print_exc()
+        return f"Transcription error: {str(e)}"
 
 def text_to_speech(text):
     headers = {
@@ -113,14 +139,10 @@ def text_to_speech(text):
 
     data = {
         "text": text,
-        "voice_settings": {
-            "stability": 0.5,
-            "similarity_boost": 0.5
-        }
+        "voice_settings": {"stability": 0.5, "similarity_boost": 0.5}
     }
 
     response = requests.post(TTS_URL, json=data, headers=headers)
-
     if response.status_code == 200:
         return response.content
     else:
@@ -128,10 +150,9 @@ def text_to_speech(text):
         return None
 
 def serve_mp3(request):
-    message = request.GET.get('message', 'This is a test message.')
-    message = urllib.parse.unquote(message).strip()
-
+    message = urllib.parse.unquote(request.GET.get('message', 'This is a test message.')).strip()
     mp3_content = text_to_speech(message)
+    
     if mp3_content:
         response = HttpResponse(mp3_content, content_type="audio/mpeg")
         response['Content-Disposition'] = 'inline; filename="output.mp3"'
@@ -140,26 +161,18 @@ def serve_mp3(request):
         return HttpResponse("Failed to generate audio.", status=500)
 
 def initiate_call(phone_number, message):
-    # Generate the MP3 file for the message
     text_to_speech(message)
-    
-    # Initiate Twilio call
     client = Client(account_sid, auth_token)
-    encoded_message = quote(message)
     call = client.calls.create(
-        url=f"{NGROK_URL}/voice/?message={encoded_message}",
+        url=f"{NGROK_URL}/voice/?message={quote(message)}",
         to=phone_number,
         from_=twilio_phone_number
     )
-
     return call.sid
 
-# @login_required(login_url='login')
 def call_request(request):
     if request.method == 'POST':
-        # Check if user is logged in when they try to submit the form
         if not request.user.is_authenticated:
-            # Save the intended URL in session so user returns after login
             request.session['next'] = request.path
             messages.info(request, "Please login to make a call")
             return redirect('login')
@@ -171,27 +184,26 @@ def call_request(request):
                 call_request.user = request.user
             call_request.save()
             
-            phone_number = form.cleaned_data['phone_number']
-            message = form.cleaned_data['message']
+            # Store call_request_id in both session and file
+            call_id = call_request.id
+            request.session['call_request_id'] = call_id
             
-            # Clear previous recording file
-            recording_file_path = os.path.join(settings.BASE_DIR, 'latest_recording.txt')
-            if os.path.exists(recording_file_path):
-                with open(recording_file_path, 'w') as f:
-                    f.write("PENDING_NEW_RECORDING")
+            with open(os.path.join(settings.BASE_DIR, 'latest_call_id.txt'), 'w') as f:
+                f.write(str(call_id))
+
+            # Reset recording file
+            with open(os.path.join(settings.BASE_DIR, 'latest_recording.txt'), 'w') as f:
+                f.write("PENDING_NEW_RECORDING")
             
-            # Store call timestamp and call_request_id in session
+            # Store call info in session
             request.session['call_timestamp'] = int(time.time())
-            request.session['call_request_id'] = call_request.id
-            
-            # IMPORTANT: Save session explicitly
             request.session.save()
             print(f"Saved call_request_id={call_request.id} to session")
             
-            # Initiate the call
-            call_sid = initiate_call(phone_number, message)
+            # Initiate call
+            call_sid = initiate_call(form.cleaned_data['phone_number'], form.cleaned_data['message'])
             request.session['call_sid'] = call_sid
-            request.session.save()  # Save again after setting call_sid
+            request.session.save()
             
             return redirect('success')
     else:
@@ -201,71 +213,38 @@ def call_request(request):
 @csrf_exempt
 def voice(request):
     response = VoiceResponse()
-    
-    # Get message from request
-    message = request.GET.get('message', 'This is a test message.')
-    message = urllib.parse.unquote(message)
-
-    # Play message audio
+    message = urllib.parse.unquote(request.GET.get('message', 'This is a test message.'))
     mp3_url = f"{NGROK_URL}/output.mp3?message={urllib.parse.quote(message)}"
     response.play(mp3_url)
-
-    # Record the call
-    action_url = f"{NGROK_URL}/handle-recording/"
-    response.record(action=action_url, max_length=30, finish_on_key="*")
-
+    response.record(action=f"{NGROK_URL}/handle-recording/", max_length=30, finish_on_key="*")
     return HttpResponse(str(response), content_type="text/xml")
 
 @csrf_exempt
 def handle_recording(request):
-    # Extract recording SID from request
+    # Get recording SID
     recording_sid = None
     
     if request.method == "POST" and request.headers.get('Content-Type') == 'application/json':
         try:
-            data = json.loads(request.body)
-            recording_sid = data.get('RecordingSid')
+            recording_sid = json.loads(request.body).get('RecordingSid')
         except json.JSONDecodeError:
-            recording_sid = None
+            pass
     else:
         recording_sid = request.POST.get("RecordingSid")
     
     if not recording_sid:
-        print("⚠️ No recording SID found in request")
         return JsonResponse({"success": False, "error": "Recording SID not found"})
     
-    # Twilio recording URL
+    # Set up file paths
     recording_url = f"https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Recordings/{recording_sid}.mp3"
-
-    # Ensure media directory exists
     media_directory = settings.MEDIA_ROOT
     os.makedirs(media_directory, exist_ok=True)
-
     filename = f"recording_{recording_sid}.mp3"
     file_path = os.path.join(media_directory, filename)
     
     # Check if file already exists
     if os.path.exists(file_path):
         public_download_url = f"{NGROK_URL}/media/{filename}"
-        
-        # Update all existing CallRequest objects that are waiting for recordings
-        from .models import CallRequest
-        try:
-            # Get all recent call requests (last 24 hours) without recording URLs
-            recent_time = time.time() - (24 * 60 * 60)  # Last 24 hours
-            recent_calls = CallRequest.objects.filter(
-                recording_url__isnull=True,
-                created_at__gte=datetime.fromtimestamp(recent_time)
-            ).order_by('-created_at')
-            
-            if recent_calls.exists():
-                recent_call = recent_calls.first()
-                recent_call.recording_url = public_download_url
-                recent_call.save()
-                print(f"✅ Updated most recent call with recording URL: {public_download_url}")
-        except Exception as e:
-            print(f"❌ Error finding recent calls: {e}")
-        
         return JsonResponse({"success": True, "download_url": public_download_url})
 
     # Retry logic for recording availability
@@ -280,111 +259,121 @@ def handle_recording(request):
             with open(file_path, "wb") as f:
                 f.write(response.content)
 
-            # Save download URL to file
+            # Save download URL and update timestamp
             public_download_url = f"{NGROK_URL}/media/{filename}"
-            recording_file_path = os.path.join(settings.BASE_DIR, 'latest_recording.txt')
+            # recording_file_path = os.path.join(settings.BASE_DIR, 'latest_recording.txt')
+            # with open(recording_file_path, 'w') as f:
+            #     f.write(public_download_url)
             
-            with open(recording_file_path, 'w') as f:
-                f.write(public_download_url)
-            
-            # Transcribe the audio using AssemblyAI
+            # Get transcription
             print("🎧 Starting transcription with AssemblyAI...")
-            transcription = transcribe_with_assemblyai(public_download_url)
-            print(f"📝 Transcription result: {transcription[:100]}...")  # Print first 100 chars of transcription
+            try:
+                transcription = transcribe_with_assemblyai(file_path)
+            except Exception as e:
+                transcription = f"Transcription failed: {str(e)}"
             
-            # Update CallRequest with the recording URL and transcription
-            call_request_id = request.session.get('call_request_id')
-            print(f"📞 Call request ID from session: {call_request_id}")
+            # Save transcription to file
+            with open(os.path.join(settings.BASE_DIR, 'latest_transcription.txt'), 'w') as f:
+                f.write(transcription)
+                
+            # Find the right call record to update
+            updated = False
             
-            if call_request_id:
-                from .models import CallRequest
+            # Try from call ID file
+            try:
+                call_id_file = os.path.join(settings.BASE_DIR, 'latest_call_id.txt')
+                if os.path.exists(call_id_file):
+                    with open(call_id_file, 'r') as f:
+                        file_call_id = f.read().strip()
+                        
+                    if file_call_id and file_call_id.isdigit():
+                        call_request = CallRequest.objects.get(id=int(file_call_id))
+                        call_request.recording_url = public_download_url
+                        call_request.transcription = transcription
+                        call_request.save()
+                        print(f"✅ Updated via file ID: {file_call_id}")
+                        updated = True
+            except Exception as e:
+                print(f"❌ Error updating via file ID: {e}")
+
+            # If that fails, try most recent record
+            if not updated:
                 try:
-                    call_request = CallRequest.objects.get(id=call_request_id)
-                    call_request.recording_url = public_download_url
-                    call_request.transcription = transcription  # Save transcription to database
-                    call_request.save()
-                    print(f"✅ Saved recording URL and transcription to database")
+                    recent_call = CallRequest.objects.filter(recording_url__isnull=True).order_by('-created_at').first()
+                    if recent_call:
+                        recent_call.recording_url = public_download_url
+                        recent_call.transcription = transcription
+                        recent_call.save()
+                        print(f"✅ Updated most recent call: {recent_call.id}")
+                        updated = True
                 except Exception as e:
-                    print(f"❌ Error updating CallRequest: {e}")
-            else:
-                print("⚠️ No call_request_id found in session")
+                    print(f"❌ Error updating recent call: {e}")
             
-            # Update file timestamp
-            current_time = time.time()
-            os.utime(recording_file_path, (current_time, current_time))
-            print(f"💿 Recording saved to {public_download_url}")
-            return JsonResponse({"success": True, "download_url": public_download_url})
+            return JsonResponse({
+                "success": True, 
+                "download_url": public_download_url,
+                "transcription": transcription
+            })
         else:
             print(f"⏳ Attempt {attempt+1}/{max_retries}: Recording not ready yet")
             time.sleep(retry_delay)
     
-    print("❌ Failed to retrieve recording after maximum retries")
     return JsonResponse({"success": False, "error": "Recording not available after multiple attempts"})
 
 def success(request):
     context = {}
     
-    # Handle AJAX requests checking for file
     if request.GET.get('check_file') == 'true':
-        recording_file_path = os.path.join(settings.BASE_DIR, 'latest_recording.txt')
-        if os.path.exists(recording_file_path):
-            with open(recording_file_path, 'r') as f:
-                download_url = f.read().strip()
-                if download_url and download_url != "PENDING_NEW_RECORDING":
-                    # IMPORTANT: When recording is ready, update the most recent call record
-                    try:
-                        from .models import CallRequest
-                        # First try with session
-                        call_request_id = request.session.get('call_request_id')
-                        updated = False
-                        
-                        if call_request_id:
-                            try:
-                                call_request = CallRequest.objects.get(id=call_request_id)
-                                call_request.recording_url = download_url
-                                call_request.save()
-                                print(f"✅ Updated recording URL via session: {download_url}")
-                                updated = True
-                            except Exception as e:
-                                print(f"❌ Error updating via session: {e}")
-                                
-                        # If that fails, find the most recent call without a recording
-                        if not updated and request.user.is_authenticated:
-                            recent_calls = CallRequest.objects.filter(
-                                user=request.user,
-                                recording_url__isnull=True
-                            ).order_by('-created_at')
-                            
-                            if recent_calls.exists():
-                                call_request = recent_calls.first()
-                                call_request.recording_url = download_url
-                                call_request.save()
-                                print(f"✅ Updated most recent call record: {call_request.id}")
-                                
-                    except Exception as e:
-                        print(f"❌ Error updating CallRequest: {e}")
-                        
-                    return JsonResponse({"success": True, "download_url": download_url})
-        return JsonResponse({"success": False})
+        try:
+            # First try from session
+            call_request_id = request.session.get('call_request_id')
+            print(f"Checking for recording with call_request_id: {call_request_id}")
+            
+            if call_request_id:
+                try:
+                    call_request = CallRequest.objects.get(id=call_request_id)
+                    
+                    if call_request.recording_url:
+                        print(f"Found recording URL: {call_request.recording_url}")
+                        return JsonResponse({
+                            "success": True, 
+                            "download_url": call_request.recording_url,
+                            "transcription": call_request.transcription or ""
+                        })
+                    else:
+                        print("Call record found but no recording URL yet")
+                except CallRequest.DoesNotExist:
+                    print(f"No call request found with ID: {call_request_id}")
+            
+            # As a fallback, check the latest_recording.txt file directly
+            recording_file_path = os.path.join(settings.BASE_DIR, 'latest_recording.txt')
+            if os.path.exists(recording_file_path):
+                with open(recording_file_path, 'r') as f:
+                    download_url = f.read().strip()
+                    if download_url and download_url != "PENDING_NEW_RECORDING":
+                        print(f"Found recording from file: {download_url}")
+                        return JsonResponse({"success": True, "download_url": download_url})
+            
+            print("No recording found yet")
+            return JsonResponse({"success": False})
+        except Exception as e:
+            print(f"Error in check_file handler: {e}")
+            return JsonResponse({"success": False, "error": str(e)})
+            return JsonResponse({"success": False})
     
-    # Get the most recent recording URL for display
-    recording_file_path = os.path.join(settings.BASE_DIR, 'latest_recording.txt')
-    current_recording_url = ""
-    if os.path.exists(recording_file_path):
-        with open(recording_file_path, 'r') as f:
-            current_recording_url = f.read().strip()
-            if current_recording_url == "PENDING_NEW_RECORDING":
-                current_recording_url = ""
-    
-    context['current_recording_url'] = current_recording_url
+    # Get most recent call for current user
+    current_call = None
+    if request.user.is_authenticated:
+        current_call = CallRequest.objects.filter(user=request.user).order_by('-created_at').first()
+        
+    if current_call:
+        context['current_recording_url'] = current_call.recording_url or ""
+    else:
+        context['current_recording_url'] = ""
     
     # Get user's call history
     if request.user.is_authenticated:
-        from .models import CallRequest
-        call_history = CallRequest.objects.filter(
-            user=request.user
-        ).order_by('-created_at')
-        context['call_history'] = call_history
+        context['call_history'] = CallRequest.objects.filter(user=request.user).order_by('-created_at')
     
     return render(request, 'success.html', context)
 
@@ -402,7 +391,6 @@ def signup_view(request):
         form = SignupForm()
     return render(request, 'signup.html', {'form': form})
 
-# Update login view to redirect to 'next' URL if available
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)  
@@ -410,7 +398,6 @@ def login_view(request):
             user = form.get_user()  
             login(request, user)
             messages.success(request, "Login successful!")
-            # Redirect to the 'next' URL if available
             next_url = request.session.get('next', '/')
             if 'next' in request.session:
                 del request.session['next']
